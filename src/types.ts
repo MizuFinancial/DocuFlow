@@ -17,7 +17,7 @@ export enum ActionType {
   SNAPSHOT = 'snapshot',
   SNAPSHOT_ELEMENT = 'snapshot_element',
   RECORD_START = 'record_start',
-  RECORD_STOP = 'record_stop'
+  RECORD_STOP = 'record_stop',
 }
 
 export interface Action {

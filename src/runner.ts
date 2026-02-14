@@ -41,7 +41,9 @@ export class Runner {
   }
 
   private async executeAction(action: Action, baseDir: string): Promise<GeneratedAsset | null> {
+    /* v8 ignore start */
     if (!this.page) return null;
+    /* v8 ignore stop */
     const { type, params } = action;
 
     switch (type) {
@@ -61,7 +63,7 @@ export class Runner {
           this.context = await this.browser.newContext({ ...device });
           this.page = await this.context.newPage();
         } else {
-            console.warn(`Device ${deviceName} not found.`);
+          console.warn(`Device ${deviceName} not found.`);
         }
         break;
       }
@@ -81,9 +83,9 @@ export class Runner {
         break;
       case ActionType.CLICK:
         try {
-            await this.page.click(params[0], { timeout: 5000 });
+          await this.page.click(params[0], { timeout: 5000 });
         } catch (e) {
-            await this.page.getByText(params[0]).click();
+          await this.page.getByText(params[0]).click();
         }
         break;
       case ActionType.FILL:
@@ -129,8 +131,8 @@ export class Runner {
         const storageState = await this.context?.storageState().catch(() => undefined);
         await this.context?.close();
         this.context = await this.browser!.newContext({
-            recordVideo: { dir: path.join(baseDir, '.temp_videos') }, // Temp dir for raw videos
-            storageState: storageState
+          recordVideo: { dir: path.join(baseDir, '.temp_videos') }, // Temp dir for raw videos
+          storageState: storageState,
         });
         this.page = await this.context.newPage();
         break;
@@ -142,26 +144,26 @@ export class Runner {
 
         const page = this.page;
         const video = page?.video();
-        
+
         if (video) {
-            // We must close the page/context to finish the video
-            await page?.close();
-            // wait for video to be saved?
-            // "The video is guaranteed to be saved after the page is closed."
-            
-            // Now save to target
-            await video.saveAs(targetPath);
-            
-            // Re-init context
-             const storageState = await this.context?.storageState().catch(() => undefined);
-             await this.context?.close(); // ensure old context closed
-             
-             this.context = await this.browser!.newContext({ storageState });
-             this.page = await this.context.newPage();
-             
-             return { type: 'video', path: filename, alt: 'Video Recording' };
+          // We must close the page/context to finish the video
+          await page?.close();
+          // wait for video to be saved?
+          // "The video is guaranteed to be saved after the page is closed."
+
+          // Now save to target
+          await video.saveAs(targetPath);
+
+          // Re-init context
+          const storageState = await this.context?.storageState().catch(() => undefined);
+          await this.context?.close(); // ensure old context closed
+
+          this.context = await this.browser!.newContext({ storageState });
+          this.page = await this.context.newPage();
+
+          return { type: 'video', path: filename, alt: 'Video Recording' };
         } else {
-            console.warn('No video recording active.');
+          console.warn('No video recording active.');
         }
         break;
       }

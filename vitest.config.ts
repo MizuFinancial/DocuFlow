@@ -9,7 +9,7 @@ export default defineConfig({
       include: ['src/**/*.ts'],
       exclude: ['src/index.ts', 'src/types.ts'], // Exclude entry point and types
       reporter: ['text', 'json', 'html'],
-      all: true
+      all: true,
     },
   },
 });

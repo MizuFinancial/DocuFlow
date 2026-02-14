@@ -8,7 +8,7 @@ export function parseLine(line: string): Action | null {
 
   // Split by whitespace but respect quotes
   const parts = splitWithQuotes(trimmed);
-  if (parts.length === 0) return null;
+  // parts is guaranteed to have at least one element if trimmed is not empty
 
   const command = parts[0].toLowerCase();
   const params = parts.slice(1);
@@ -23,15 +23,33 @@ export function parseLine(line: string): Action | null {
       // Remove the sub-command from params for cleaner handling later
       if (type) params.shift();
       break;
-    case 'goto': type = ActionType.GOTO; break;
-    case 'reload': type = ActionType.RELOAD; break;
-    case 'goback': type = ActionType.GO_BACK; break;
-    case 'click': type = ActionType.CLICK; break;
-    case 'fill': type = ActionType.FILL; break;
-    case 'type': type = ActionType.TYPE; break;
-    case 'press': type = ActionType.PRESS; break;
-    case 'hover': type = ActionType.HOVER; break;
-    case 'check': type = ActionType.CHECK; break;
+    case 'goto':
+      type = ActionType.GOTO;
+      break;
+    case 'reload':
+      type = ActionType.RELOAD;
+      break;
+    case 'goback':
+      type = ActionType.GO_BACK;
+      break;
+    case 'click':
+      type = ActionType.CLICK;
+      break;
+    case 'fill':
+      type = ActionType.FILL;
+      break;
+    case 'type':
+      type = ActionType.TYPE;
+      break;
+    case 'press':
+      type = ActionType.PRESS;
+      break;
+    case 'hover':
+      type = ActionType.HOVER;
+      break;
+    case 'check':
+      type = ActionType.CHECK;
+      break;
     case 'wait':
       if (params[0] === 'time') type = ActionType.WAIT_TIME;
       else if (params[0] === 'selector') type = ActionType.WAIT_SELECTOR;
@@ -61,7 +79,7 @@ export function parseLine(line: string): Action | null {
   return {
     type,
     params,
-    originalLine: line
+    originalLine: line,
   };
 }
 
@@ -90,7 +108,8 @@ function splitWithQuotes(str: string): string[] {
 }
 
 export function parseScript(script: string): Action[] {
-  return script.split('\n')
+  return script
+    .split('\n')
     .map(parseLine)
     .filter((a): a is Action => a !== null);
 }

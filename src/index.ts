@@ -11,7 +11,7 @@ async function findMarkdownFiles(dir: string): Promise<string[]> {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       if (entry.name !== 'node_modules' && entry.name !== '.git') {
-        files.push(...await findMarkdownFiles(fullPath));
+        files.push(...(await findMarkdownFiles(fullPath)));
       }
     } else if (entry.isFile() && entry.name.endsWith('.md')) {
       files.push(fullPath);
@@ -32,7 +32,7 @@ async function main() {
       console.log(chalk.yellow(`Processing ${file}...`));
       await processFile(file);
     }
-    
+
     console.log(chalk.blue('Done.'));
   } catch (error) {
     console.error(chalk.red('Error:'), error);

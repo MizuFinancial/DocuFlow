@@ -12,15 +12,13 @@ export async function processFile(filePath: string) {
   const content = await fs.readFile(filePath, 'utf-8');
   const baseDir = path.dirname(filePath);
 
-  const processor = unified()
-    .use(remarkParse)
-    .use(remarkStringify, { bullet: '-', listItemIndent: 'one' }); // formatting options
+  const processor = unified().use(remarkParse).use(remarkStringify, { bullet: '-', listItemIndent: 'one' }); // formatting options
 
   const tree = processor.parse(content);
-  
+
   // 1. Identify flow blocks
-  const flowBlocks: { node: any, parent: any }[] = [];
-  
+  const flowBlocks: { node: any; parent: any }[] = [];
+
   visit(tree, 'code', (node, index, parent) => {
     if (node.lang === 'flow' && parent) {
       flowBlocks.push({ node, parent });
@@ -40,10 +38,10 @@ export async function processFile(filePath: string) {
     for (const { node, parent } of flowBlocks) {
       const script = node.value;
       const actions = parseScript(script);
-      
+
       console.log(`Executing block in ${filePath}...`);
       const assets = await runner.run(actions, baseDir);
-      
+
       if (assets.length > 0) {
         injectAssets(node, parent, assets);
       }
@@ -65,9 +63,9 @@ function injectAssets(node: any, parent: any, assets: GeneratedAsset[]) {
   let currentIndex = nodeIndex + 1;
 
   for (const asset of assets) {
-    // Check if next node is an image (or paragraph with image)
+    // Check if next node is an image (or paragraph with image) or video
     const nextNode = parent.children[currentIndex];
-    
+
     let isMatchingImage = false;
     let imageNode: any = null;
 
@@ -75,43 +73,47 @@ function injectAssets(node: any, parent: any, assets: GeneratedAsset[]) {
       if (nextNode.type === 'image') {
         isMatchingImage = true;
         imageNode = nextNode;
-      } else if (nextNode.type === 'paragraph' && 
-                 nextNode.children && 
-                 nextNode.children.length === 1 && 
-                 nextNode.children[0].type === 'image') {
+      } else if (
+        nextNode.type === 'paragraph' &&
+        nextNode.children &&
+        nextNode.children.length === 1 &&
+        nextNode.children[0].type === 'image'
+      ) {
         isMatchingImage = true;
         imageNode = nextNode.children[0];
-      } else if (asset.type === 'video' && nextNode.type === 'html' && nextNode.value.includes('<video')) {
-          // Detect existing video?
-          // For simplicity, let's treat video as generic HTML or Image replacement.
-          // PRD says: "Markdown中出现 <video ...> ... "
-          // This usually parses as 'html' node.
-          // Let's support overwriting it.
-          isMatchingImage = true; // reusing flag
+      } else {
+        // Check for Video Node
+        let isVideoNode = false;
+        if (nextNode.type === 'html' && nextNode.value.trim().startsWith('<video')) {
+          isVideoNode = true;
+        } else if (nextNode.type === 'paragraph' && nextNode.children) {
+          const hasVideoChild = nextNode.children.some(
+            (c: any) => c.type === 'html' && c.value.trim().startsWith('<video'),
+          );
+          if (hasVideoChild) {
+            isVideoNode = true;
+          }
+        }
+
+        if (isVideoNode) {
+          isMatchingImage = true;
+          // imageNode remains null, signaling we should replace the whole node
+        }
       }
     }
 
     if (isMatchingImage) {
       // Update existing
-      if (asset.type === 'image') {
-          // If it was a video before, we replace it with image structure?
-          // Simplify: Just update the properties if it's an image node.
-          // If the structure is different (video vs image), easier to replace the node.
-          
-          if (imageNode) {
-              imageNode.url = asset.path;
-              if (asset.alt) imageNode.alt = asset.alt;
-          } else {
-              // It was an HTML video node, replace the whole paragraph/node
-               const newNode = createAssetNode(asset);
-               parent.children[currentIndex] = newNode;
-          }
-      } else if (asset.type === 'video') {
-           // Replace with video node
-           const newNode = createAssetNode(asset);
-           parent.children[currentIndex] = newNode;
+      if (asset.type === 'image' && imageNode) {
+        // Update properties of existing image node
+        imageNode.url = asset.path;
+        if (asset.alt) imageNode.alt = asset.alt;
+      } else {
+        // Replace node (Video -> Image, Image -> Video, Video -> Video, or Image -> Image where struct differs)
+        const newNode = createAssetNode(asset);
+        parent.children[currentIndex] = newNode;
       }
-      
+
       currentIndex++;
     } else {
       // Insert new
@@ -130,16 +132,16 @@ function createAssetNode(asset: GeneratedAsset) {
         {
           type: 'image',
           url: asset.path,
-          alt: asset.alt || 'Snapshot'
-        }
-      ]
+          alt: asset.alt || 'Snapshot',
+        },
+      ],
     };
   } else {
     // Video
     // Return HTML node
     return {
       type: 'html',
-      value: `<video src="${asset.path}" controls width="100%"></video>`
+      value: `<video src="${asset.path}" controls width="100%"></video>`,
     };
   }
 }
