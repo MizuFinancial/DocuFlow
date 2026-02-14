@@ -1,0 +1,40 @@
+{
+  "name": "docuflow",
+  "version": "1.0.0",
+  "description": "Automated documentation generation tool based on Markdown DSL and Playwright",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "test": "vitest run --coverage",
+    "build": "tsc",
+    "format": "biome format --write"
+  },
+  "keywords": [
+    "documentation",
+    "playwright",
+    "markdown",
+    "automation",
+    "dsl"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "playwright": "^1.41.2",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.4",
+    "unist-util-visit": "^5.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.15",
+    "@types/node": "^20.11.19",
+    "@types/uniqid": "^5.3.3",
+    "@vitest/coverage-v8": "^4.0.18",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.18"
+  }
+}
