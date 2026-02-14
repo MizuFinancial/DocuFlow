@@ -1,6 +1,7 @@
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkStringify from 'remark-stringify';
+import remarkFrontmatter from 'remark-frontmatter';
 import { visit } from 'unist-util-visit';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -11,8 +12,14 @@ import { GeneratedAsset } from './types.js';
 export async function processFile(filePath: string) {
   const content = await fs.readFile(filePath, 'utf-8');
   const baseDir = path.dirname(filePath);
+  const ext = path.extname(filePath);
+  const basename = path.basename(filePath, ext);
+  const outputFilePath = path.join(baseDir, `${basename}-done${ext}`);
 
-  const processor = unified().use(remarkParse).use(remarkStringify, { bullet: '-', listItemIndent: 'one' }); // formatting options
+  const processor = unified()
+    .use(remarkParse)
+    .use(remarkFrontmatter, ['yaml'])
+    .use(remarkStringify, { bullet: '-', listItemIndent: 'one' });
 
   const tree = processor.parse(content);
 
@@ -42,86 +49,65 @@ export async function processFile(filePath: string) {
       console.log(`Executing block in ${filePath}...`);
       const assets = await runner.run(actions, baseDir);
 
+      // Find current index (it might shift if we modify tree)
+      const currentIndex = parent.children.indexOf(node);
+      if (currentIndex === -1) continue; // Should not happen
+
+      // Check next node for existing artifacts to remove
+      let removeCount = 1; // Always remove the code block itself
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < parent.children.length) {
+        const nextNode = parent.children[nextIndex];
+        if (isVisualNode(nextNode)) {
+          removeCount++; // Remove the artifact too
+        }
+      }
+
       if (assets.length > 0) {
-        injectAssets(node, parent, assets);
+        // Create nodes for new assets
+        const assetNodes = assets.map(createAssetNode);
+        // Replace code block (and potential artifact) with new assets
+        parent.children.splice(currentIndex, removeCount, ...assetNodes);
+      } else {
+        // If no assets generated, just remove the block (and artifact)
+        parent.children.splice(currentIndex, removeCount);
       }
     }
   } finally {
     await runner.close();
   }
 
-  // 3. Stringify and Write
+  // 3. Add Metadata (Frontmatter)
+  let hasFrontmatter = false;
+  if (tree.children.length > 0 && tree.children[0].type === 'yaml') {
+    hasFrontmatter = true;
+  }
+
+  if (!hasFrontmatter) {
+    const metadata = `title: ${basename}\ndate: ${new Date().toISOString()}\ngenerator: docuflow`;
+    tree.children.unshift({
+      type: 'yaml',
+      value: metadata,
+    });
+  }
+
+  // 4. Stringify and Write to NEW file
   const newContent = processor.stringify(tree);
-  await fs.writeFile(filePath, newContent, 'utf-8');
-  console.log(`Updated ${filePath}`);
+  await fs.writeFile(outputFilePath, newContent, 'utf-8');
+  console.log(`Generated ${outputFilePath}`);
 }
 
-function injectAssets(node: any, parent: any, assets: GeneratedAsset[]) {
-  const nodeIndex = parent.children.indexOf(node);
-  if (nodeIndex === -1) return; // Should not happen
-
-  let currentIndex = nodeIndex + 1;
-
-  for (const asset of assets) {
-    // Check if next node is an image (or paragraph with image) or video
-    const nextNode = parent.children[currentIndex];
-
-    let isMatchingImage = false;
-    let imageNode: any = null;
-
-    if (nextNode) {
-      if (nextNode.type === 'image') {
-        isMatchingImage = true;
-        imageNode = nextNode;
-      } else if (
-        nextNode.type === 'paragraph' &&
-        nextNode.children &&
-        nextNode.children.length === 1 &&
-        nextNode.children[0].type === 'image'
-      ) {
-        isMatchingImage = true;
-        imageNode = nextNode.children[0];
-      } else {
-        // Check for Video Node
-        let isVideoNode = false;
-        if (nextNode.type === 'html' && nextNode.value.trim().startsWith('<video')) {
-          isVideoNode = true;
-        } else if (nextNode.type === 'paragraph' && nextNode.children) {
-          const hasVideoChild = nextNode.children.some(
-            (c: any) => c.type === 'html' && c.value.trim().startsWith('<video'),
-          );
-          if (hasVideoChild) {
-            isVideoNode = true;
-          }
-        }
-
-        if (isVideoNode) {
-          isMatchingImage = true;
-          // imageNode remains null, signaling we should replace the whole node
-        }
-      }
-    }
-
-    if (isMatchingImage) {
-      // Update existing
-      if (asset.type === 'image' && imageNode) {
-        // Update properties of existing image node
-        imageNode.url = asset.path;
-        if (asset.alt) imageNode.alt = asset.alt;
-      } else {
-        // Replace node (Video -> Image, Image -> Video, Video -> Video, or Image -> Image where struct differs)
-        const newNode = createAssetNode(asset);
-        parent.children[currentIndex] = newNode;
-      }
-
-      currentIndex++;
-    } else {
-      // Insert new
-      const newNode = createAssetNode(asset);
-      parent.children.splice(currentIndex, 0, newNode);
-      currentIndex++;
-    }
+function isVisualNode(node: any): boolean {
+  if (node.type === 'image') return true;
+  if (node.type === 'paragraph' && node.children && node.children.length === 1 && node.children[0].type === 'image') {
+    return true;
   }
+  // Check for Video Node
+  if (node.type === 'html' && node.value.trim().startsWith('<video')) return true;
+  if (node.type === 'paragraph' && node.children) {
+    return node.children.some((c: any) => c.type === 'html' && c.value.trim().startsWith('<video'));
+  }
+  return false;
 }
 
 function createAssetNode(asset: GeneratedAsset) {
@@ -138,7 +124,6 @@ function createAssetNode(asset: GeneratedAsset) {
     };
   } else {
     // Video
-    // Return HTML node
     return {
       type: 'html',
       value: `<video src="${asset.path}" controls width="100%"></video>`,

@@ -1,22 +1,75 @@
-# DocuFlow (基于 Markdown 的自动化文档生成工具)
+# DocuFlow
 
-## 1. 产品背景与定义 (Background & Definition)
+**Automated Documentation Generator based on Markdown DSL and Playwright.**
 
-### 1.1 背景
+DocuFlow allows you to embed execution scripts directly within your Markdown files. It automatically runs these scripts to capture screenshots or record videos, and then generates a "published" version of your document with the artifacts embedded.
 
-传统的软件产品文档维护是一个痛点：
+[中文文档 (Chinese Documentation)](./README.zh.md)
 
-* **截图易过期**：产品 UI 迭代快，文档中的截图往往在两周后就与实际界面不符。
-* **维护成本高**：手动截图、录屏、上传、替换链接的过程繁琐且容易出错。
-* **缺乏联动**：文档与测试分离，文档写得再好也无法验证产品功能是否正常。
+## Key Features
 
-### 1.2 产品定义
+*   **Single Source of Truth**: The documentation contains the automation script.
+*   **Automated**: Always up-to-date screenshots and videos.
+*   **Simple DSL**: Easy-to-write syntax for browser automation.
 
-**DocuFlow** 是一个轻量级的文档生成工具。它允许用户在 Markdown 文件中嵌入一种简洁的**DSL（领域特定语言）脚本**。
-解析器读取 Markdown，提取脚本，通过 Playwright 驱动浏览器执行操作，自动捕获截图或视频，并将生成的媒体资源链接回填到 Markdown 中。
+## Usage Guide
 
-### 1.3 核心价值
+### 1. Installation
 
-* **单一数据源 (Single Source of Truth)**：文档即脚本，修改脚本即更新文档。
-* **自动化**：一键生成最新 UI 的截图和视频。
-* **低门槛**：使用类自然语言的 DSL，无需精通 Node.js 或 Playwright API。
+DocuFlow relies on Playwright. Ensure you have Node.js (>=18) installed.
+
+**Global Installation:**
+
+```bash
+pnpm install -g @mizufinancial/docuflow
+pnpx playwright install chromium
+```
+
+**Local Installation:**
+
+```bash
+pnpm add -D @mizufinancial/docuflow
+pnpm exec playwright install chromium
+```
+
+### 2. Writing Documentation
+
+Write `flow` code blocks in your Markdown file (`example.md`):
+
+````markdown
+# My Feature
+
+Here is the homepage:
+
+```flow
+config viewport 1280x720
+goto https://example.com
+snapshot homepage.png
+```
+````
+
+### 3. Generation
+
+Run the tool to process your files:
+
+```bash
+# Process all .md files in the current directory
+pnpx docuflow
+
+# Process a specific directory
+pnpx docuflow ./docs
+```
+
+**Output:**
+The tool will generate a new file named `example-done.md`.
+*   The `flow` code blocks will be **removed**.
+*   The generated images/videos will be inserted in their place.
+*   YAML metadata (frontmatter) will be added to the top of the file.
+
+### 4. DSL Specification
+
+See [DSL_SPEC.md](./DSL_SPEC.md) for full syntax details.
+
+## Example
+
+Check out [Mizu Homepage](./mizu/homepage.md) for a real-world example.

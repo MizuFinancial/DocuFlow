@@ -1,0 +1,26 @@
+# Ignore development and test files
+src/
+tests/
+coverage/
+node_modules/
+.temp_videos/
+.DS_Store
+
+# Ignore config files
+vite.config.ts
+vitest.config.ts
+tsconfig.json
+biome.json
+pnpm-lock.yaml
+
+# Ignore generated documentation assets in source
+mizu/
+*.png
+*.webm
+
+# Ignore markdown docs not relevant for package usage
+# Keep README.md and DSL_SPEC.md for user reference
+DEV_NOTE.md
+TESTING.md
+GEMINI.md
+test_cases.md

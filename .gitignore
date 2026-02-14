@@ -3,3 +3,5 @@ dist
 .DS_Store
 .temp_videos
 coverage
+*.png
+*.mp4
