@@ -1,5 +1,7 @@
-import { Browser, BrowserContext, Page, chromium, devices } from 'playwright';
-import { Action, ActionType, GeneratedAsset } from './types.js';
+import { chromium, devices } from 'playwright';
+import type { Browser, BrowserContext, Page } from 'playwright';
+import { ActionType } from './types.ts';
+import type { Action, GeneratedAsset } from './types.ts';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 

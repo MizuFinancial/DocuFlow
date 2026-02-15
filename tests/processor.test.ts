@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { processFile } from '../src/processor.js';
+import { processFile } from '../src/processor.ts';
 import * as fs from 'fs/promises';
-import { Runner } from '../src/runner.js';
-import { ActionType } from '../src/types.js';
+import { Runner } from '../src/runner.ts';
+import { ActionType } from '../src/types.ts';
 import { visit } from 'unist-util-visit';
 
 // Define the mock instance outside
@@ -13,7 +13,7 @@ const mockRunnerInstance = {
 };
 
 // Mock the module returning a constructor function
-vi.mock('../src/runner.js', () => {
+vi.mock('../src/runner.ts', () => {
   return {
     Runner: vi.fn(function () {
       return mockRunnerInstance;

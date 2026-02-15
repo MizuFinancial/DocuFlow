@@ -45,9 +45,6 @@ importers:
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@24.10.13)(typescript@5.9.3)
-      tsx:
-        specifier: ^4.21.0
-        version: 4.21.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -1909,6 +1906,7 @@ snapshots:
   get-tsconfig@4.13.6:
     dependencies:
       resolve-pkg-maps: 1.0.0
+    optional: true
 
   graceful-fs@4.2.11: {}
 
@@ -2265,7 +2263,8 @@ snapshots:
 
   require-from-string@2.0.2: {}
 
-  resolve-pkg-maps@1.0.0: {}
+  resolve-pkg-maps@1.0.0:
+    optional: true
 
   resolve@1.22.11:
     dependencies:
@@ -2373,6 +2372,7 @@ snapshots:
       get-tsconfig: 4.13.6
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   typescript@5.8.2: {}
 

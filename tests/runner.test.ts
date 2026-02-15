@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { Runner } from '../src/runner.js';
-import { ActionType, Action } from '../src/types.js';
+import { Runner } from '../src/runner.ts';
+import { ActionType } from '../src/types.ts';
+import type { Action } from '../src/types.ts';
 import * as playwright from 'playwright';
 import * as fs from 'fs/promises';
 

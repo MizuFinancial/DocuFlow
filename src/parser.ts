@@ -1,4 +1,5 @@
-import { Action, ActionType } from './types.js';
+import { ActionType } from './types.ts';
+import type { Action } from './types.ts';
 
 export function parseLine(line: string): Action | null {
   const trimmed = line.trim();

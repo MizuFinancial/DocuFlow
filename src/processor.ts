@@ -5,9 +5,9 @@ import remarkFrontmatter from 'remark-frontmatter';
 import { visit } from 'unist-util-visit';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { parseScript } from './parser.js';
-import { Runner } from './runner.js';
-import { GeneratedAsset } from './types.js';
+import { parseScript } from './parser.ts';
+import { Runner } from './runner.ts';
+import type { GeneratedAsset } from './types.ts';
 
 export async function processFile(filePath: string) {
   const content = await fs.readFile(filePath, 'utf-8');

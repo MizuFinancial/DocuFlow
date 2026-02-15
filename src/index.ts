@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { processFile } from './processor.js';
+import { processFile } from './processor.ts';
 import chalk from 'chalk';
 
 async function findMarkdownFiles(dir: string): Promise<string[]> {
@@ -21,7 +21,8 @@ async function findMarkdownFiles(dir: string): Promise<string[]> {
 }
 
 async function main() {
-  const targetDir = process.argv[2] || '.';
+  const args = process.argv.slice(2);
+  const targetDir = args.find((arg) => arg !== '--') || '.';
   console.log(chalk.blue(`Scanning ${targetDir} for Markdown files...`));
 
   try {

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { parseLine, parseScript } from '../src/parser.js';
-import { ActionType } from '../src/types.js';
+import { parseLine, parseScript } from '../src/parser.ts';
+import { ActionType } from '../src/types.ts';
 
 describe('Parser', () => {
   describe('parseLine', () => {
