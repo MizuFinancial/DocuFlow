@@ -26,7 +26,17 @@ async function main() {
   console.log(chalk.blue(`Scanning ${targetDir} for Markdown files...`));
 
   try {
-    const files = await findMarkdownFiles(targetDir);
+    const stats = await fs.stat(targetDir);
+    let files: string[] = [];
+    if (stats.isFile()) {
+      if (targetDir.endsWith('.md')) {
+        files = [targetDir];
+      } else {
+        console.log(chalk.yellow(`${targetDir} is not a Markdown file.`));
+      }
+    } else {
+      files = await findMarkdownFiles(targetDir);
+    }
     console.log(chalk.green(`Found ${files.length} files.`));
 
     for (const file of files) {

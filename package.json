@@ -1,6 +1,6 @@
 {
   "name": "@mizufinancial/docuflow",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Automated documentation generation tool based on Markdown DSL and Playwright",
   "main": "dist/index.js",
   "bin": {
